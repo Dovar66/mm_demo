@@ -16,6 +16,5 @@
         android:layout_height="wrap_content"
         android:padding="10dp"
         android:layout_centerInParent="true"
-        android:textSize="18sp"
         android:text="打开辅助服务"/>
 </RelativeLayout>
