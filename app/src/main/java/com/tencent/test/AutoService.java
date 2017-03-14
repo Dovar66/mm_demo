@@ -11,9 +11,12 @@ import android.os.Build;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
 import android.widget.Toast;
@@ -50,6 +53,7 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
     private int i = 0;//记录已打招呼的人数
     private int page = 1;//记录附近的人列表页码,初始页码为1
     private int prepos = -1;//记录页面跳转来源，0--从附近的人页面跳转到详细资料页，1--从打招呼页面跳转到详细资料页
+    private int prepos_lucky = -1;
 
 
     @Override
@@ -62,7 +66,7 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
             if (!texts.isEmpty()) {
                 for (CharSequence t : texts) {
                     String text = String.valueOf(t);
-                    if (text.contains("微信红包")){
+                    if (text.contains("微信红包")) {
                         openNotification(event);
                     }
 
@@ -82,10 +86,14 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
                 getLuckyMoney();
             } else if ("com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyDetailUI".equals(event.getClassName())) {
                 //拆完红包后看详细纪录的界面
-                openNext("查看我的红包记录");
+//                openNext("查看我的红包记录");
+                prepos_lucky = 1;
             } else if ("com.tencent.mm.ui.LauncherUI".equals(event.getClassName())) {
                 //在聊天界面,去点中红包
-                openLuckyEnvelope();
+                if (prepos_lucky != 1) {//不是从拆完红包页返回时
+                    openLuckyEnvelope();
+                }
+                prepos_lucky = 0;
             }
         }
         //自动加人
@@ -204,8 +212,7 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
             return;
         }
         List<AccessibilityNodeInfo> list = nodeInfo.findAccessibilityNodeInfosByText(str);
-        Log.d("name", "匹配个数: " + list.size());
-        if (list.size() > 0) {
+        if (list != null && list.size() > 0) {
             list.get(list.size() - 1).performAction(AccessibilityNodeInfo.ACTION_CLICK);
             list.get(list.size() - 1).getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
         } else {
@@ -248,12 +255,15 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
     @Override
     public void onInterrupt() {
         Toast.makeText(this, "服务已中断", Toast.LENGTH_SHORT).show();
+        wm.removeView(floatBtn1);
+        wm.removeView(floatBtn2);
     }
 
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
         Toast.makeText(this, "服务已开启", Toast.LENGTH_SHORT).show();
+        createFloatView();
     }
 
 //    private void sendNotificationEvent() {
@@ -281,14 +291,12 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
         //bi3是本人写代码时微信拆红包的button的id,该id可能会在更新微信版本后发生变更,可通过Android Device Monitor查看获取
         //可创建一个hashMap,在微信发生版本变更时储存对应微信版本号与id值，用于适配多个微信版本
         List<AccessibilityNodeInfo> list = nodeInfo.findAccessibilityNodeInfosByViewId("bi3");
-//        List<AccessibilityNodeInfo> list = nodeInfo.findAccessibilityNodeInfosByText("拆红包");
         if (list != null && list.size() > 0) {
             list.get(0).performAction(AccessibilityNodeInfo.ACTION_CLICK);
             return;
         }
-        int c = nodeInfo.getChildCount();
-        int i;
-        for (i = 0; i < c; i++) {
+        //如果没找到拆红包的button，则将界面上所有子节点都点击一次
+        for (int i = 0; i < nodeInfo.getChildCount(); i++) {
             nodeInfo.getChild(i).performAction(AccessibilityNodeInfo.ACTION_CLICK);
         }
     }
@@ -302,7 +310,7 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
         }
         List<AccessibilityNodeInfo> list = nodeInfo.findAccessibilityNodeInfosByText("领取红包");
         if (list.isEmpty()) {
-            Toast.makeText(this, "找不到红包", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "没有新红包", Toast.LENGTH_SHORT).show();
         } else {
             //选择聊天记录中最新的红包
             for (int i = list.size() - 1; i >= 0; i--) {
@@ -316,19 +324,15 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
         }
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        createFloatView();
-    }
 
-    private Button floatBtn1;
-    private Button floatBtn2;
+    private MoveTextView floatBtn1;
+    private MoveTextView floatBtn2;
+    private WindowManager wm;
 
     //创建悬浮按钮
     private void createFloatView() {
         WindowManager.LayoutParams pl = new WindowManager.LayoutParams();
-        WindowManager wm = (WindowManager) getSystemService(getApplication().WINDOW_SERVICE);
+        wm = (WindowManager) getSystemService(getApplication().WINDOW_SERVICE);
         pl.type = WindowManager.LayoutParams.TYPE_PHONE;
         pl.format = PixelFormat.RGBA_8888;
         pl.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
@@ -340,16 +344,18 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
         pl.height = WindowManager.LayoutParams.WRAP_CONTENT;
 
         LayoutInflater inflater = LayoutInflater.from(this);
-        floatBtn1 = (Button) inflater.inflate(R.layout.floatbtn, null);
+        floatBtn1 = (MoveTextView) inflater.inflate(R.layout.floatbtn, null);
         floatBtn1.setText("打招呼");
-        floatBtn2 = (Button) inflater.inflate(R.layout.floatbtn, null);
+        floatBtn2 = (MoveTextView) inflater.inflate(R.layout.floatbtn, null);
         floatBtn2.setText("抢红包");
         wm.addView(floatBtn1, pl);
-        pl.gravity = Gravity.BOTTOM|Gravity.START;
+        pl.gravity = Gravity.BOTTOM | Gravity.START;
         wm.addView(floatBtn2, pl);
 
         floatBtn1.setOnClickListener(this);
         floatBtn2.setOnClickListener(this);
+        floatBtn1.setWm(wm, pl);
+        floatBtn2.setWm(wm, pl);
     }
 
     @Override
