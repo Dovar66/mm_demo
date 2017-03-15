@@ -294,8 +294,7 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
         if (list != null && list.size() > 0) {
             list.get(0).performAction(AccessibilityNodeInfo.ACTION_CLICK);
             return;
-        }
-        //如果没找到拆红包的button，则将界面上所有子节点都点击一次
+        }        //如果没找到拆红包的button，则将界面上所有子节点都点击一次
         for (int i = 0; i < nodeInfo.getChildCount(); i++) {
             nodeInfo.getChild(i).performAction(AccessibilityNodeInfo.ACTION_CLICK);
         }
