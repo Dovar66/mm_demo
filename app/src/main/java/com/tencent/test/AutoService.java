@@ -6,31 +6,22 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.graphics.PixelFormat;
 import android.os.Build;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.widget.Button;
 import android.widget.Toast;
 
 import java.util.List;
 
 /**
- * 1、确保应用已获取到悬浮窗权限Manifest.permission.SYSTEM_ALERT_WINDOW，用于功能的即时开启与关闭，部分手机可能需要手动进入权限管理中开启
- * 2、使用此服务需要获取手机特殊权限：部分手机点击本demo页面中“打开辅助服务”按钮进入辅助功能页即可找到名称为“mm”的服务，然后打开即可，
+ * 1.使用此服务需要获取手机特殊权限：部分手机点击本demo页面中“打开辅助服务”按钮进入辅助功能页即可找到名称为“mm”的服务，然后打开即可，
  * 其他手机需要在辅助功能中找到“无障碍”项，然后在“无障碍”中找到“mm”打开即可
+ * 2.确保手机的微信消息能在通知栏显示
  * Created by Dovar66
  */
-public class AutoService extends AccessibilityService implements View.OnClickListener {
-    private static final String TAG = "test";
+public class AutoService extends AccessibilityService {
+    public static final String TAG = "test";
     /**
      * 微信的包名
      */
@@ -48,8 +39,8 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
      */
     private String hello = "测试APP自动打招呼功能，这是一条测试信息";
 
-    private boolean enableFunc2;//标记是否开启抢红包功能
-    private boolean enableFunc3;//标记是否开启自动添加附近的人为好友的功能;
+    public static boolean enableFunc2;//标记是否开启抢红包功能
+    public static boolean enableFunc3;//标记是否开启自动添加附近的人为好友的功能;
     private int i = 0;//记录已打招呼的人数
     private int page = 1;//记录附近的人列表页码,初始页码为1
     private int prepos = -1;//记录页面跳转来源，0--从附近的人页面跳转到详细资料页，1--从打招呼页面跳转到详细资料页
@@ -151,7 +142,7 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
                 //从附近的人跳转来的，则点击打招呼按钮
                 AccessibilityNodeInfo nodeInfo = getRootInActiveWindow();
                 if (nodeInfo == null) {
-                    Log.w(TAG, "rootWindow为空");
+                    Log.d(TAG, "rootWindow为空");
                     return;
                 }
                 List<AccessibilityNodeInfo> list = nodeInfo.findAccessibilityNodeInfosByText("打招呼");
@@ -207,7 +198,7 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
     private void openNext(String str) {
         AccessibilityNodeInfo nodeInfo = getRootInActiveWindow();
         if (nodeInfo == null) {
-            Log.w(TAG, "rootWindow为空");
+            Log.d(TAG, "rootWindow为空");
             Toast.makeText(this, "rootWindow为空", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -255,15 +246,12 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
     @Override
     public void onInterrupt() {
         Toast.makeText(this, "服务已中断", Toast.LENGTH_SHORT).show();
-        wm.removeView(floatBtn1);
-        wm.removeView(floatBtn2);
     }
 
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
         Toast.makeText(this, "服务已开启", Toast.LENGTH_SHORT).show();
-        createFloatView();
     }
 
 //    private void sendNotificationEvent() {
@@ -284,7 +272,7 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
     private void getLuckyMoney() {
         AccessibilityNodeInfo nodeInfo = getRootInActiveWindow();
         if (nodeInfo == null) {
-            Log.w(TAG, "rootWindow为空");
+            Log.d(TAG, "rootWindow为空");
             Toast.makeText(this, "rootWindow为空", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -303,7 +291,7 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
     private void openLuckyEnvelope() {
         AccessibilityNodeInfo nodeInfo = getRootInActiveWindow();
         if (nodeInfo == null) {
-            Log.w(TAG, "rootWindow为空");
+            Log.d(TAG, "rootWindow为空");
             Toast.makeText(this, "rootWindow为空", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -314,65 +302,12 @@ public class AutoService extends AccessibilityService implements View.OnClickLis
             //选择聊天记录中最新的红包
             for (int i = list.size() - 1; i >= 0; i--) {
                 AccessibilityNodeInfo parent = list.get(i).getParent();
-                Log.i(TAG, "-->领取红包:" + parent);
+                Log.d(TAG, "-->领取红包:" + parent);
                 if (parent != null) {
                     parent.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                     break;
                 }
             }
-        }
-    }
-
-
-    private MoveTextView floatBtn1;
-    private MoveTextView floatBtn2;
-    private WindowManager wm;
-
-    //创建悬浮按钮
-    private void createFloatView() {
-        WindowManager.LayoutParams pl = new WindowManager.LayoutParams();
-        wm = (WindowManager) getSystemService(getApplication().WINDOW_SERVICE);
-        pl.type = WindowManager.LayoutParams.TYPE_PHONE;
-        pl.format = PixelFormat.RGBA_8888;
-        pl.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-        pl.gravity = Gravity.END | Gravity.BOTTOM;
-        pl.x = 0;
-        pl.y = 0;
-
-        pl.width = WindowManager.LayoutParams.WRAP_CONTENT;
-        pl.height = WindowManager.LayoutParams.WRAP_CONTENT;
-
-        LayoutInflater inflater = LayoutInflater.from(this);
-        floatBtn1 = (MoveTextView) inflater.inflate(R.layout.floatbtn, null);
-        floatBtn1.setText("打招呼");
-        floatBtn2 = (MoveTextView) inflater.inflate(R.layout.floatbtn, null);
-        floatBtn2.setText("抢红包");
-        wm.addView(floatBtn1, pl);
-        pl.gravity = Gravity.BOTTOM | Gravity.START;
-        wm.addView(floatBtn2, pl);
-
-        floatBtn1.setOnClickListener(this);
-        floatBtn2.setOnClickListener(this);
-        floatBtn1.setWm(wm, pl);
-        floatBtn2.setWm(wm, pl);
-    }
-
-    @Override
-    public void onClick(View v) {
-        if (v == floatBtn1) {
-            if (enableFunc3) {
-                floatBtn1.setText("打招呼");
-            } else {
-                floatBtn1.setText("off");
-            }
-            enableFunc3 = !enableFunc3;
-        } else {
-            if (enableFunc2) {
-                floatBtn2.setText("抢红包");
-            } else {
-                floatBtn2.setText("off");
-            }
-            enableFunc2 = !enableFunc2;
         }
     }
 }
