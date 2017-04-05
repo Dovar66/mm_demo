@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //打开系统设置中辅助功能
             Intent intent = new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS);
             startActivity(intent);
-            Toast.makeText(MainActivity.this, "找到mm，然后开启服务即可", Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this, "找到抢红包，然后开启服务即可", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
