@@ -1,10 +1,16 @@
 package com.tencent.test;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -14,28 +20,29 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 
+import static com.tencent.test.AutoService.TAG;
 import static com.tencent.test.AutoService.enableFunc2;
 import static com.tencent.test.AutoService.enableFunc3;
-import static com.tencent.test.AutoService.TAG;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         dealStatusBar();
 
-        Button startBtn = (Button) findViewById(R.id.start);
-        startBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                requestPermission();
-            }
-        });
-
+        CheckBox cb_assist = (CheckBox) findViewById(R.id.cb_assist_permission);
+        if (cb_assist != null) {
+            cb_assist.setOnCheckedChangeListener(this);
+        }
+        CheckBox cb_window = (CheckBox) findViewById(R.id.cb_show_window);
+        if (cb_window != null) {
+            cb_window.setOnCheckedChangeListener(this);
+        }
         createFloatView();
     }
 
@@ -58,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void createFloatView() {
         WindowManager.LayoutParams pl = new WindowManager.LayoutParams();
         wm = (WindowManager) getSystemService(getApplication().WINDOW_SERVICE);
-        pl.type = WindowManager.LayoutParams.TYPE_TOAST;//修改为此type值，可以不用申请悬浮窗权限就能创建悬浮窗
+        pl.type = WindowManager.LayoutParams.TYPE_PHONE;//修改为此TYPE_TOAST，可以不用申请悬浮窗权限就能创建悬浮窗,但在部分手机上会崩溃
         pl.format = PixelFormat.RGBA_8888;
         pl.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         pl.gravity = Gravity.END | Gravity.BOTTOM;
@@ -101,15 +108,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 enableFunc2 = !enableFunc2;
             }
-        } else {
-            requestPermission();
         }
     }
 
 
     /**
      * 检测辅助功能是否开启
-     *
      */
     private boolean isAccessibilitySettingsOn() {
         int accessibilityEnabled = 0;
@@ -174,5 +178,89 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onBackPressed() {
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        switch (buttonView.getId()) {
+            case R.id.cb_assist_permission:
+                requestPermission();
+//                new AlertDialog.Builder(this)
+//                        .setMessage(R.string.dialog_enable_accessibility_msg)
+//                        .setPositiveButton(R.string.dialog_enable_accessibility_positive_btn
+//                                , new DialogInterface.OnClickListener() {
+//                                    @Override
+//                                    public void onClick(DialogInterface dialog, int which) {
+//                                        setIsShowWindow(MainActivity.this, true);
+//                                        Intent intent = new Intent();
+//                                        intent.setAction("android.settings.ACCESSIBILITY_SETTINGS");
+//                                        startActivity(intent);
+//                                    }
+//                                })
+//                        .setNegativeButton(android.R.string.cancel
+//                                , new DialogInterface.OnClickListener() {
+//                                    @Override
+//                                    public void onClick(DialogInterface dialog, int which) {
+////                                            refreshWindowSwitch();
+//                                    }
+//                                })
+//                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
+//                            @Override
+//                            public void onCancel(DialogInterface dialog) {
+////                                    refreshWindowSwitch();
+//                            }
+//                        })
+//                        .create()
+//                        .show();
+                break;
+            case R.id.cb_show_window:
+                if (isChecked) {
+                    new AlertDialog.Builder(this)
+                        .setMessage(R.string.dialog_enable_overlay_window_msg)
+                        .setPositiveButton(R.string.dialog_enable_overlay_window_positive_btn
+                                , new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                                        intent.setData(Uri.parse("package:"+getPackageName()));
+                                        startActivity(intent);
+                                        dialog.dismiss();
+                                    }
+                                })
+                        .setNegativeButton(android.R.string.cancel
+                                , new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        setIsShowWindow(MainActivity.this, false);
+                                    }
+                                })
+                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                                setIsShowWindow(MainActivity.this, false);
+                            }
+                        })
+                        .create()
+                        .show();
+                }
+
+                setIsShowWindow(this, isChecked);
+                if (!isChecked) {
+                    TasksWindow.dismiss();
+                } else {
+                    TasksWindow.show(this, getPackageName() + "\n" + getClass().getName());
+                }
+                break;
+        }
+    }
+
+    public static boolean isShowWindow(Context context) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        return sp.getBoolean("is_show_window", true);
+    }
+
+    public static void setIsShowWindow(Context context, boolean isShow) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        sp.edit().putBoolean("is_show_window", isShow).commit();
     }
 }

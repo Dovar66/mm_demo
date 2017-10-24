@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">抢红包</string>
+    <string name="show_window">Show floating window</string>
+    <string name="get_assist_permission">打开辅助服务</string>
+
+    <string name="dialog_enable_accessibility_msg">Enable my Accessibility Service in order to get current activity info on Android 5.0+</string>
+    <string name="dialog_enable_accessibility_positive_btn">Enable It</string>
+    <string name="dialog_enable_overlay_window_msg">Allow permission to show window over other apps on Android 7.1.1+ </string>
+    <string name="dialog_enable_overlay_window_positive_btn">settings</string>
 </resources>

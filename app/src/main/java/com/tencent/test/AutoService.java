@@ -6,6 +6,7 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.Intent;
 import android.os.Build;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
@@ -55,12 +56,17 @@ public class AutoService extends AccessibilityService {
 
     private TextToSpeech mTts;
 
-    private List<String> ids = Arrays.asList("bjj", "bi3");      //用于存储微信开红包按钮使用过的id，微信几乎每次版本更新都会修改此button的id
+    private List<String> ids = Arrays.asList("bjj", "bi3", "brt");      //用于存储微信开红包按钮使用过的id，微信几乎每次版本更新都会修改此button的id
     private List<String> activityNames = Arrays.asList("En_fba4b94f", "LuckyMoneyReceiveUI");      //储存微信开红包activity使用过的className，最新的微信版本更新有修改过此activity的名称
 
     @Override
     public void onAccessibilityEvent(final AccessibilityEvent event) {
         int eventType = event.getEventType();
+
+        if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            TasksWindow.show(this, event.getPackageName() + "\n" + event.getClassName());
+        }
+
         //通知栏事件
         if (eventType == AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED
                 && (enableFunc1 || enableFunc2)) {
@@ -92,7 +98,7 @@ public class AutoService extends AccessibilityService {
             if ("com.tencent.mm.plugin.luckymoney.ui.En_fba4b94f".equals(event.getClassName())) {
                 isRunning = true;
                 //当前在红包待开页面，去拆红包
-                getLuckyMoney();
+                getLuckyMoney(event);
             } else if ("com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyDetailUI".equals(event.getClassName())) {
                 isRunning = false;
                 //拆完红包后看详细纪录的界面
@@ -287,7 +293,13 @@ public class AutoService extends AccessibilityService {
         });
     }
 
-//    private void sendNotificationEvent() {
+    @Override
+    public boolean onUnbind(Intent intent) {
+        TasksWindow.dismiss();
+        return super.onUnbind(intent);
+    }
+
+    //    private void sendNotificationEvent() {
 //        AccessibilityManager manager = (AccessibilityManager) getSystemService(ACCESSIBILITY_SERVICE);
 //        if (!manager.isEnabled()) {
 //            return;
@@ -302,8 +314,10 @@ public class AutoService extends AccessibilityService {
 
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private void getLuckyMoney() {
-        AccessibilityNodeInfo nodeInfo = getRootInActiveWindow();
+    private void getLuckyMoney(AccessibilityEvent event) {
+        AccessibilityNodeInfo nodeInfo =
+                getRootInActiveWindow();  //获得整个窗口对象
+//                event.getSource();//得到被点击的对象
         if (nodeInfo == null) {
             Log.d(TAG, "rootWindow为空");
             Toast.makeText(this, "rootWindow为空", Toast.LENGTH_SHORT).show();
@@ -320,9 +334,13 @@ public class AutoService extends AccessibilityService {
                 return;
             }
         }
+
         //如果没找到拆红包的button，则将界面上所有子节点都点击一次
-        for (int i = 0; i < nodeInfo.getChildCount(); i++) {
-            nodeInfo.getChild(i).performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        for (int i = nodeInfo.getChildCount() - 1; i >= 0; i--) {
+            if (("android.widget.Button").equals(nodeInfo.getChild(i).getClassName())) {
+                nodeInfo.getChild(i).performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            }
+//            nodeInfo.getChild(i).performAction(AccessibilityNodeInfo.ACTION_CLICK);
         }
     }
 
