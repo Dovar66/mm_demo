@@ -21,6 +21,7 @@ import java.util.Locale;
 /**
  * 1.使用此服务需要获取手机特殊权限：部分手机点击本demo页面中“打开辅助服务”按钮进入辅助功能页即可找到名称为“抢红包”的服务，然后打开即可，
  * 其他手机需要在辅助功能中找到“无障碍”项，然后在“无障碍”中找到“抢红包”打开即可
+ * note:APP获取到辅助功能权限后，一旦APP进程被强杀就会清除该权限，再次进入APP又需要重新申请，正常退出则不会
  * 2.确保手机的微信消息能在通知栏显示
  * Created by Dovar66
  */
@@ -63,7 +64,7 @@ public class AutoService extends AccessibilityService {
     public void onAccessibilityEvent(final AccessibilityEvent event) {
         int eventType = event.getEventType();
 
-        if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+        if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && MainActivity.canShowWindow(this)) {
             TasksWindow.show(this, event.getPackageName() + "\n" + event.getClassName());
         }
 

@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -15,38 +13,55 @@ import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Toast;
 
 import static com.tencent.test.AutoService.TAG;
-import static com.tencent.test.AutoService.enableFunc2;
-import static com.tencent.test.AutoService.enableFunc3;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
+public class MainActivity extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener {
+    private CheckBox cb_assist;
+    private CheckBox cb_window;
+    private CheckBox cb_lucky_money;
+    private CheckBox cb_people_nearby;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        dealStatusBar();
 
-        CheckBox cb_assist = (CheckBox) findViewById(R.id.cb_assist_permission);
+        cb_assist = (CheckBox) findViewById(R.id.cb_assist_permission);
         if (cb_assist != null) {
             cb_assist.setOnCheckedChangeListener(this);
         }
-        CheckBox cb_window = (CheckBox) findViewById(R.id.cb_show_window);
+        cb_window = (CheckBox) findViewById(R.id.cb_show_window);
         if (cb_window != null) {
             cb_window.setOnCheckedChangeListener(this);
         }
-        createFloatView();
+        cb_lucky_money = (CheckBox) findViewById(R.id.cb_lucky_money);
+        if (cb_lucky_money != null) {
+            cb_lucky_money.setOnCheckedChangeListener(this);
+        }
+        cb_people_nearby = (CheckBox) findViewById(R.id.cb_people_nearby);
+        if (cb_people_nearby != null) {
+            cb_people_nearby.setOnCheckedChangeListener(this);
+        }
     }
 
-    private void requestPermission() {
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateCheckBox(cb_assist, isAccessibilitySettingsOn());
+        updateCheckBox(cb_window, canShowWindow(this));
+        if (canShowWindow(this)) {
+            requestFloatWindowPermissionIfNeeded();
+        }
+    }
+
+    /**
+     * 申请辅助功能权限
+     */
+    private void requestAssistPermission() {
         try {
             //打开系统设置中辅助功能
             Intent intent = new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS);
@@ -57,7 +72,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private MoveTextView floatBtn1;
+    /**
+     * 申请悬浮窗权限
+     */
+    private void requestFloatWindowPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            new AlertDialog.Builder(this)
+                    .setMessage(R.string.dialog_enable_overlay_window_msg)
+                    .setPositiveButton(R.string.dialog_enable_overlay_window_positive_btn
+                            , new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                                    intent.setData(Uri.parse("package:" + getPackageName()));
+                                    startActivity(intent);
+                                    dialog.dismiss();
+                                }
+                            })
+                    .setNegativeButton(android.R.string.cancel
+                            , new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    setShowWindow(MainActivity.this, false);
+                                    updateCheckBox(cb_window, false);
+                                }
+                            })
+                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialog) {
+                            setShowWindow(MainActivity.this, false);
+                            updateCheckBox(cb_window, false);
+                        }
+                    })
+                    .create()
+                    .show();
+
+        }
+    }
+
+/*    private MoveTextView floatBtn1;
     private MoveTextView floatBtn2;
     private WindowManager wm;
 
@@ -65,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void createFloatView() {
         WindowManager.LayoutParams pl = new WindowManager.LayoutParams();
         wm = (WindowManager) getSystemService(getApplication().WINDOW_SERVICE);
-        pl.type = WindowManager.LayoutParams.TYPE_PHONE;//修改为此TYPE_TOAST，可以不用申请悬浮窗权限就能创建悬浮窗,但在部分手机上会崩溃
+        pl.type = WindowManager.LayoutParams.TYPE_TOAST;//修改为此TYPE_TOAST，可以不用申请悬浮窗权限就能创建悬浮窗,但在部分手机上会崩溃
         pl.format = PixelFormat.RGBA_8888;
         pl.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         pl.gravity = Gravity.END | Gravity.BOTTOM;
@@ -88,29 +141,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         floatBtn2.setOnClickListener(this);
         floatBtn1.setWm(wm, pl);
         floatBtn2.setWm(wm, pl);
-    }
-
-    @Override
-    public void onClick(View v) {
-        if (isAccessibilitySettingsOn()) {
-            if (v == floatBtn1) {
-                if (enableFunc3) {
-                    floatBtn1.setText("打招呼");
-                } else {
-                    floatBtn1.setText("off");
-                }
-                enableFunc3 = !enableFunc3;
-            } else {
-                if (enableFunc2) {
-                    floatBtn2.setText("抢红包");
-                } else {
-                    floatBtn2.setText("off");
-                }
-                enableFunc2 = !enableFunc2;
-            }
-        }
-    }
-
+    }*/
 
     /**
      * 检测辅助功能是否开启
@@ -147,120 +178,67 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return false;
     }
 
-    /**
-     * 沉浸式状态栏
-     */
-    public void dealStatusBar() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            Window window = getWindow();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-                window.setStatusBarColor(Color.TRANSPARENT);
-            } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-                }
-            }
-            window.getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-        }
-    }
-
-
-    @Override
-    protected void onDestroy() {
-        wm.removeView(floatBtn1);
-        wm.removeView(floatBtn2);
-        wm = null;
-        super.onDestroy();
-    }
-
-    @Override
-    public void onBackPressed() {
-    }
-
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         switch (buttonView.getId()) {
             case R.id.cb_assist_permission:
-                requestPermission();
-//                new AlertDialog.Builder(this)
-//                        .setMessage(R.string.dialog_enable_accessibility_msg)
-//                        .setPositiveButton(R.string.dialog_enable_accessibility_positive_btn
-//                                , new DialogInterface.OnClickListener() {
-//                                    @Override
-//                                    public void onClick(DialogInterface dialog, int which) {
-//                                        setIsShowWindow(MainActivity.this, true);
-//                                        Intent intent = new Intent();
-//                                        intent.setAction("android.settings.ACCESSIBILITY_SETTINGS");
-//                                        startActivity(intent);
-//                                    }
-//                                })
-//                        .setNegativeButton(android.R.string.cancel
-//                                , new DialogInterface.OnClickListener() {
-//                                    @Override
-//                                    public void onClick(DialogInterface dialog, int which) {
-////                                            refreshWindowSwitch();
-//                                    }
-//                                })
-//                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
-//                            @Override
-//                            public void onCancel(DialogInterface dialog) {
-////                                    refreshWindowSwitch();
-//                            }
-//                        })
-//                        .create()
-//                        .show();
+                if (isChecked && !isAccessibilitySettingsOn()) {
+                    requestAssistPermission();
+                }
                 break;
             case R.id.cb_show_window:
+                setShowWindow(this, isChecked);
+
                 if (isChecked) {
-                    new AlertDialog.Builder(this)
-                        .setMessage(R.string.dialog_enable_overlay_window_msg)
-                        .setPositiveButton(R.string.dialog_enable_overlay_window_positive_btn
-                                , new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-                                        intent.setData(Uri.parse("package:"+getPackageName()));
-                                        startActivity(intent);
-                                        dialog.dismiss();
-                                    }
-                                })
-                        .setNegativeButton(android.R.string.cancel
-                                , new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        setIsShowWindow(MainActivity.this, false);
-                                    }
-                                })
-                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                            @Override
-                            public void onCancel(DialogInterface dialog) {
-                                setIsShowWindow(MainActivity.this, false);
-                            }
-                        })
-                        .create()
-                        .show();
+                    requestFloatWindowPermissionIfNeeded();
                 }
 
-                setIsShowWindow(this, isChecked);
                 if (!isChecked) {
                     TasksWindow.dismiss();
                 } else {
                     TasksWindow.show(this, getPackageName() + "\n" + getClass().getName());
                 }
                 break;
+            case R.id.cb_lucky_money:
+                if (isChecked) {
+                    if (isAccessibilitySettingsOn()) {
+                        AutoService.enableFunc2 = true;
+                    } else {
+                        Toast.makeText(MainActivity.this, "辅助功能未开启", Toast.LENGTH_SHORT).show();
+                        buttonView.setChecked(false);
+                    }
+                } else {
+                    AutoService.enableFunc2 = false;
+                }
+                break;
+            case R.id.cb_people_nearby:
+                if (isChecked) {
+                    if (isAccessibilitySettingsOn()) {
+                        AutoService.enableFunc3 = true;
+                    } else {
+                        Toast.makeText(MainActivity.this, "辅助功能未开启", Toast.LENGTH_SHORT).show();
+                        buttonView.setChecked(false);
+                    }
+                } else {
+                    AutoService.enableFunc3 = false;
+                }
+                break;
         }
     }
 
-    public static boolean isShowWindow(Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        return sp.getBoolean("is_show_window", true);
+    private void updateCheckBox(CheckBox box, boolean isChecked) {
+        if (box != null) {
+            box.setChecked(isChecked);
+        }
     }
 
-    public static void setIsShowWindow(Context context, boolean isShow) {
+    public static boolean canShowWindow(Context context) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        sp.edit().putBoolean("is_show_window", isShow).commit();
+        return sp.getBoolean("show_window", true);
+    }
+
+    public static void setShowWindow(Context context, boolean isShow) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        sp.edit().putBoolean("show_window", isShow).apply();
     }
 }

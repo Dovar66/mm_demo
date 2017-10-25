@@ -13,7 +13,7 @@ import android.widget.Button;
  * Created by Administrator on 2017-03-14.
  */
 
-public class MoveTextView extends Button {
+public class MoveTextView extends android.support.v7.widget.AppCompatButton {
     private float mRawX;
     private float mRawY;
 
