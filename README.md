@@ -42,9 +42,8 @@ packageName用于配置你想要监测的包名，如果多个则用逗号隔开
 accessibilityEventTypes表示该服务可监测界面中哪些事件类型,如窗口打开,滑动等,具体值可查看api。<br>  
 accessibilityFeedbackType 表示反馈方式,比如是语音播放,还是震动。<br>  
 canRetrieveWindowContent 表示该服务能否访问活动窗口中的内容，为false时getRootInActiveWindow()获取结果为null。<br>  
-notificationTimeout 接受事件的时间间隔。<br>  
-<br>  
-当然，除了以meta-data的方式静态配置，也可通过在服务启动时的onServiceConnected()方法中调用setServiceInfo(AccessibilityServiceInfo)进行动态配置。<br>  
+notificationTimeout 接受事件的时间间隔。<br>   
+当然，除了以meta-data的方式静态配置，也可通过在服务启动时的onServiceConnected()方法中调用setServiceInfo(AccessibilityServiceInfo)进行动态配置。
 
 # 补充：
 ## 几种常用accessibilityEventType事件类型：
@@ -57,7 +56,7 @@ TYPE_VIEW_TEXT_CHANGED		editText控件的内容发生改变<br>
 TYPE_TOUCH_INTERACTION_START		用户开始触摸屏幕<br>  
 TYPE_TOUCH_INTERACTION_END		用户停止触摸屏幕<br>  
 ### 其中TYPE_WINDOW_CONTENT_CHANGED	又可以细分为4个二级类型：	
-1.CONTENT_CHANGE_TYPE_SUBTREE	节点发生增减。<br>  
-2.CONTENT_CHANGE_TYPE_TEXT	节点文本发生改变。<br>  
-3.CONTENT_CHANGE_TYPE_CONTENT_DESCRIPTION		节点的内容描述发生改变，即控件的contentDescription属性发生改变。<br>  
-4.CONTENT_CHANGE_TYPE_UNDEFINED	未定义类型，即除上面三种之外的类型。<br>  
+  *CONTENT_CHANGE_TYPE_SUBTREE	节点发生增减。<br>  
+  *CONTENT_CHANGE_TYPE_TEXT	节点文本发生改变。<br>  
+  *CONTENT_CHANGE_TYPE_CONTENT_DESCRIPTION		节点的内容描述发生改变，即控件的contentDescription属性发生改变。<br>  
+  *CONTENT_CHANGE_TYPE_UNDEFINED	未定义类型，即除上面三种之外的类型。<br>  
