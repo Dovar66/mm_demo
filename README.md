@@ -7,7 +7,7 @@
 
 关于使用AccessibilityService前的配置：
 在manifest中的配置：
-<p align="center">
+```
 <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
 
 <service
@@ -23,10 +23,10 @@
         android:name="android.accessibilityservice"
         android:resource="@xml/envelope_service_config"/>
 </service>
-</p>
+```
 
 meta-data中的xml资源文件：
-<p align="center">
+```
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:accessibilityEventTypes="typeNotificationStateChanged|typeWindowStateChanged|typeWindowContentChanged"
     android:accessibilityFeedbackType="feedbackGeneric"
@@ -35,7 +35,7 @@ meta-data中的xml资源文件：
     android:description="@string/app_name"
     android:notificationTimeout="100"
     android:packageNames="com.tencent.mm,com.huawei.android.launcher" />
-</p>
+```
 
 其中:
 packageName用于配置你想要监测的包名，如果多个则用逗号隔开，未配置此项时默认监测所有程序。
