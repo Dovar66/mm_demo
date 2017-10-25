@@ -40,9 +40,6 @@ notificationTimeout 接受事件的时间间隔
 
 当然，除了以meta-data的方式静态配置，也可通过在服务启动时的onServiceConnected()方法中调用setServiceInfo(AccessibilityServiceInfo)进行动态配置。
 
-接下来，或许你可以自己尝试下使用AccessibilityService实现app的自动安装/批量安装，去学习吧，骚年！
-demo地址：点击打开链接
-
 补充：
 几种常用accessibilityEventType事件类型：
 TYPE_WINDOW_STATE_CHANGED	窗口状态改变事件类型，打开PopupWindow、dialog、menu等
