@@ -32,7 +32,7 @@ meta-data中的xml资源文件：
     android:notificationTimeout="100"
     android:packageNames="com.tencent.mm,com.huawei.android.launcher" />  
 其中:
- packageName用于配置你想要监测的包名，如果多个则用逗号隔开，未配置此项时默认监测所有程序
+packageName用于配置你想要监测的包名，如果多个则用逗号隔开，未配置此项时默认监测所有程序
 accessibilityEventTypes表示该服务可监测界面中哪些事件类型,如窗口打开,滑动等,具体值可查看api
 accessibilityFeedbackType 表示反馈方式,比如是语音播放,还是震动
 canRetrieveWindowContent 表示该服务能否访问活动窗口中的内容，为false时getRootInActiveWindow()获取结果为null
