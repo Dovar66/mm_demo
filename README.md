@@ -32,17 +32,17 @@ meta-data中的xml资源文件：
     android:notificationTimeout="100"
     android:packageNames="com.tencent.mm,com.huawei.android.launcher" />  
 其中:
-packageName用于配置你想要监测的包名，如果多个则用逗号隔开，未配置此项时默认监测所有程序
-accessibilityEventTypes表示该服务可监测界面中哪些事件类型,如窗口打开,滑动等,具体值可查看api
-accessibilityFeedbackType 表示反馈方式,比如是语音播放,还是震动
-canRetrieveWindowContent 表示该服务能否访问活动窗口中的内容，为false时getRootInActiveWindow()获取结果为null
-notificationTimeout 接受事件的时间间隔
+packageName用于配置你想要监测的包名，如果多个则用逗号隔开，未配置此项时默认监测所有程序。
+accessibilityEventTypes表示该服务可监测界面中哪些事件类型,如窗口打开,滑动等,具体值可查看api。
+accessibilityFeedbackType 表示反馈方式,比如是语音播放,还是震动。
+canRetrieveWindowContent 表示该服务能否访问活动窗口中的内容，为false时getRootInActiveWindow()获取结果为null.
+notificationTimeout 接受事件的时间间隔。
 
 当然，除了以meta-data的方式静态配置，也可通过在服务启动时的onServiceConnected()方法中调用setServiceInfo(AccessibilityServiceInfo)进行动态配置。
 
-补充：
-几种常用accessibilityEventType事件类型：
-TYPE_WINDOW_STATE_CHANGED	窗口状态改变事件类型，打开PopupWindow、dialog、menu等
+# 补充：
+## 几种常用accessibilityEventType事件类型：
+TYPE_WINDOW_STATE_CHANGED	窗口状态改变事件类型，打开PopupWindow、dialog、menu等。
 TYPE_NOTIFICATION_STATE_CHANGED		通知栏事件
 TYPE_WINDOW_CONTENT_CHANGED		窗口中内容改变
 TYPE_VIEW_SCROLLED		控件滑动事件
