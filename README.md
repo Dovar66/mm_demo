@@ -1,12 +1,13 @@
 # mm_demo
-AccessibilityService重新整理：微信自动抢红包、微信自动向附近的人打招呼、微信自动打开文章推送
-关于如何获取app页面中控件的id：在Android Studio中开启Android Device Monitor,选择设备后点击Dump View Hierarchy for UI Automator即可查看
+
+关于如何获取app页面中控件的id：在Android Studio中开启Android Device Monitor,选择设备后点击Dump View Hierarchy for UI Automator即可查看。
 <p align="center">
-  <img src="http://img.blog.csdn.net/20170313214108128?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvRG92YXJfNjY=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" width="220" height="220" alt="Banner" />
+  <img src="app\src\main\assets\20170313214108128.png" width="220" height="220" alt="Banner" />
 </p>
 
 关于使用AccessibilityService前的配置：
 在manifest中的配置：
+<p align="center">
 <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
 
 <service
@@ -22,7 +23,10 @@ AccessibilityService重新整理：微信自动抢红包、微信自动向附近
         android:name="android.accessibilityservice"
         android:resource="@xml/envelope_service_config"/>
 </service>
+</p>
+
 meta-data中的xml资源文件：
+<p align="center">
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:accessibilityEventTypes="typeNotificationStateChanged|typeWindowStateChanged|typeWindowContentChanged"
     android:accessibilityFeedbackType="feedbackGeneric"
@@ -30,12 +34,14 @@ meta-data中的xml资源文件：
     android:canRetrieveWindowContent="true"
     android:description="@string/app_name"
     android:notificationTimeout="100"
-    android:packageNames="com.tencent.mm,com.huawei.android.launcher" />  
+    android:packageNames="com.tencent.mm,com.huawei.android.launcher" />
+</p>
+
 其中:
 packageName用于配置你想要监测的包名，如果多个则用逗号隔开，未配置此项时默认监测所有程序。
 accessibilityEventTypes表示该服务可监测界面中哪些事件类型,如窗口打开,滑动等,具体值可查看api。
 accessibilityFeedbackType 表示反馈方式,比如是语音播放,还是震动。
-canRetrieveWindowContent 表示该服务能否访问活动窗口中的内容，为false时getRootInActiveWindow()获取结果为null.
+canRetrieveWindowContent 表示该服务能否访问活动窗口中的内容，为false时getRootInActiveWindow()获取结果为null。
 notificationTimeout 接受事件的时间间隔。
 
 当然，除了以meta-data的方式静态配置，也可通过在服务启动时的onServiceConnected()方法中调用setServiceInfo(AccessibilityServiceInfo)进行动态配置。
