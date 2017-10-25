@@ -56,7 +56,7 @@ TYPE_VIEW_TEXT_CHANGED		editText控件的内容发生改变<br>
 TYPE_TOUCH_INTERACTION_START		用户开始触摸屏幕<br>  
 TYPE_TOUCH_INTERACTION_END		用户停止触摸屏幕<br>  
 ### 其中TYPE_WINDOW_CONTENT_CHANGED	又可以细分为4个二级类型：	
-  *CONTENT_CHANGE_TYPE_SUBTREE	节点发生增减。<br>  
-  *CONTENT_CHANGE_TYPE_TEXT	节点文本发生改变。<br>  
-  *CONTENT_CHANGE_TYPE_CONTENT_DESCRIPTION		节点的内容描述发生改变，即控件的contentDescription属性发生改变。<br>  
-  *CONTENT_CHANGE_TYPE_UNDEFINED	未定义类型，即除上面三种之外的类型。<br>  
+  * CONTENT_CHANGE_TYPE_SUBTREE	节点发生增减。<br>  
+  * CONTENT_CHANGE_TYPE_TEXT	节点文本发生改变。<br>  
+  * CONTENT_CHANGE_TYPE_CONTENT_DESCRIPTION		内容描述发生改变，即控件的contentDescription属性发生改变。<br>  
+  * CONTENT_CHANGE_TYPE_UNDEFINED	未定义类型，即除上面三种之外的类型。<br>  
