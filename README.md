@@ -1,7 +1,9 @@
 # mm_demo
 AccessibilityService重新整理：微信自动抢红包、微信自动向附近的人打招呼、微信自动打开文章推送
 关于如何获取app页面中控件的id：在Android Studio中开启Android Device Monitor,选择设备后点击Dump View Hierarchy for UI Automator即可查看
-
+<p align="center">
+  <img src="https://cloud.githubusercontent.com/assets/1190261/26751376/63f96538-486a-11e7-81cf-5bc83a945207.png" width="220" height="220" alt="Banner" />
+</p>
 
 关于使用AccessibilityService前的配置：
 在manifest中的配置：
