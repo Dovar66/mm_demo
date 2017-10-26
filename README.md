@@ -4,6 +4,10 @@
 
 ![图片](https://github.com/Dovar66/mm_demo/raw/master/app/src/main/assets/20170313214108128.png)
 
+<p align="center">
+  <img src="app\src\main\assets\20170313214108128.png"  alt="Banner" />
+</p>
+
 关于使用AccessibilityService前的配置：
 在manifest中的配置：
 ```xml
