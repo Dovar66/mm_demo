@@ -1,9 +1,6 @@
 # mm_demo
 
-关于如何获取app页面中控件的id：在Android Studio中开启Android Device Monitor,选择设备后点击Dump View Hierarchy for UI Automator即可查看。<br>  
-
-![图片](https://github.com/Dovar66/mm_demo/raw/master/app/src/main/assets/20170313214108128.png)
-
+关于如何获取app页面中控件的id：在Android Studio中开启Android Device Monitor,选择设备后点击Dump View Hierarchy for UI Automator即可查看。<br> 
 <p align="center">
   <img src="app\src\main\assets\20170313214108128.png"  alt="Banner" />
 </p>
