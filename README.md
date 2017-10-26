@@ -4,10 +4,11 @@
 <p align="center">
   <img src="app\src\main\assets\20170313214108128.png"  alt="Banner" />
 </p>
+![](app\src\main\assets\20170313214108128.png)
 
 关于使用AccessibilityService前的配置：
 在manifest中的配置：
-```
+```xml
 <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
 
 <service
@@ -26,7 +27,7 @@
 ```
 
 meta-data中的xml资源文件：
-```
+```xml
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:accessibilityEventTypes="typeNotificationStateChanged|typeWindowStateChanged|typeWindowContentChanged"
     android:accessibilityFeedbackType="feedbackGeneric"
@@ -44,7 +45,6 @@ accessibilityFeedbackType 表示反馈方式,比如是语音播放,还是震动�
 canRetrieveWindowContent 表示该服务能否访问活动窗口中的内容，为false时getRootInActiveWindow()获取结果为null。<br>  
 notificationTimeout 接受事件的时间间隔。<br>   
 当然，除了以meta-data的方式静态配置，也可通过在服务启动时的onServiceConnected()方法中调用setServiceInfo(AccessibilityServiceInfo)进行动态配置。
-
 ## 补充：
 ### 几种常用accessibilityEventType事件类型：
 TYPE_WINDOW_STATE_CHANGED	窗口状态改变事件类型，打开PopupWindow、dialog、menu等<br>  
