@@ -1,17 +1,19 @@
 package com.tencent.test;
 
 import android.accessibilityservice.AccessibilityService;
-import android.annotation.TargetApi;
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityWindowInfo;
 import android.widget.Toast;
 
 import java.util.Arrays;
@@ -69,6 +71,7 @@ public class AutoService extends AccessibilityService {
         }
 
         //通知栏事件
+        // TODO: 2017/10/26  MIUI9不会触发AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED
         if (eventType == AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED
                 && (enableFunc1 || enableFunc2)) {
             List<CharSequence> texts = event.getText();
@@ -99,7 +102,12 @@ public class AutoService extends AccessibilityService {
             if ("com.tencent.mm.plugin.luckymoney.ui.En_fba4b94f".equals(event.getClassName())) {
                 isRunning = true;
                 //当前在红包待开页面，去拆红包
-                getLuckyMoney(event);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        getLuckyMoney(event);
+                    }
+                }, 1000);
             } else if ("com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyDetailUI".equals(event.getClassName())) {
                 isRunning = false;
                 //拆完红包后看详细纪录的界面
@@ -110,7 +118,12 @@ public class AutoService extends AccessibilityService {
                 //在聊天界面,去点中红包
                 if (!isBackward) {//不是从拆完红包页返回时
                     isRunning = true;
-                    openLuckyEnvelope();
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            openLuckyEnvelope();
+                        }
+                    }, 1000);
                 } else {
                     isRunning = false;
                 }
@@ -314,11 +327,32 @@ public class AutoService extends AccessibilityService {
 //    }
 
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+    @SuppressLint("NewApi")
     private void getLuckyMoney(AccessibilityEvent event) {
-        AccessibilityNodeInfo nodeInfo =
-                getRootInActiveWindow();  //获得整个窗口对象
-//                event.getSource();//得到被点击的对象
+//        getWindows();
+//        findFocus(AccessibilityNodeInfo.FOCUS_ACCESSIBILITY);
+//        event.getSource();
+        List<AccessibilityWindowInfo> nodeInfos = getWindows();
+        for (AccessibilityWindowInfo window : nodeInfos
+                ) {
+            AccessibilityNodeInfo nodeInfo = window.getRoot();
+            if (nodeInfo == null) {
+                break;
+            }
+            Toast.makeText(this, "getWindows()不为空", Toast.LENGTH_SHORT).show();
+            List<AccessibilityNodeInfo> list = null;
+            for (String id : ids
+                    ) {
+                list = nodeInfo.findAccessibilityNodeInfosByViewId(id);
+                if (list != null && list.size() > 0) {
+                    list.get(0).performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                    Toast.makeText(this, "clickBy getWindows()", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+        }
+
+        AccessibilityNodeInfo nodeInfo = getRootInActiveWindow();  //获得整个窗口对象
         if (nodeInfo == null) {
             Log.d(TAG, "rootWindow为空");
             Toast.makeText(this, "rootWindow为空", Toast.LENGTH_SHORT).show();
@@ -332,6 +366,7 @@ public class AutoService extends AccessibilityService {
             list = nodeInfo.findAccessibilityNodeInfosByViewId(id);
             if (list != null && list.size() > 0) {
                 list.get(0).performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                Toast.makeText(this, "clickBy getRootInActiveWindow()", Toast.LENGTH_SHORT).show();
                 return;
             }
         }
@@ -340,9 +375,11 @@ public class AutoService extends AccessibilityService {
         for (int i = nodeInfo.getChildCount() - 1; i >= 0; i--) {
             if (("android.widget.Button").equals(nodeInfo.getChild(i).getClassName())) {
                 nodeInfo.getChild(i).performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                Toast.makeText(this, "clickBy android.widget.Button", Toast.LENGTH_SHORT).show();
+                return;
             }
-//            nodeInfo.getChild(i).performAction(AccessibilityNodeInfo.ACTION_CLICK);
         }
+        Toast.makeText(this, "未找到开红包按钮", Toast.LENGTH_SHORT).show();
     }
 
     private void openLuckyEnvelope() {
