@@ -4,7 +4,7 @@
 <p align="center">
   <img src="app\src\main\assets\20170313214108128.png"  alt="Banner" />
 </p>
-![pic](app\src\main\assets\20170313214108128.png)
+![pic](20170313214108128.png)
 
 关于使用AccessibilityService前的配置：
 在manifest中的配置：
