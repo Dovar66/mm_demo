@@ -47,7 +47,7 @@ notificationTimeout 接受事件的时间间隔。<br>
 ## 补充：
 ### 几种常用accessibilityEventType事件类型：
 TYPE_WINDOW_STATE_CHANGED	窗口状态改变事件类型，打开PopupWindow、dialog、menu等<br>  
-TYPE_NOTIFICATION_STATE_CHANGED		通知栏事件<br>  
+TYPE_NOTIFICATION_STATE_CHANGED		通知栏、Toast事件<br>
 TYPE_WINDOW_CONTENT_CHANGED		窗口中内容改变<br>  
 TYPE_VIEW_SCROLLED		控件滑动事件<br>  
 TYPE_WINDOWS_CHANGED		显示窗口改变<br>  
