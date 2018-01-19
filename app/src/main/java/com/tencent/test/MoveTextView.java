@@ -6,7 +6,6 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.WindowManager;
-import android.widget.Button;
 
 
 /**
@@ -67,8 +66,15 @@ public class MoveTextView extends android.support.v7.widget.AppCompatButton {
         int screenHeight = size.y;
         if (lp != null) {
             // 更新坐标
+             /* //以屏幕左下角为原点时
             lp.x = (int) (mRawX - mStartX);
-            lp.y = screenHeight - (int) (mRawY - mStartY)-getHeight();
+            lp.y = screenHeight - (int) (mRawY - mStartY);*/
+            //以屏幕左上角为原点时
+            lp.x = (int) (mRawX - mStartX);
+            lp.y = (int) (mRawY - mStartY);
+           /* //以屏幕中线右边为原点时
+            lp.x = (int) (screenWidth - mRawX);
+            lp.y = (int) (mRawY) - screenHeight / 2;*/
             Log.d("tag", "updateWindowPosition: " + mRawY + "\n" + mStartY + "\n" + lp.y);
             // 使参数生效
             wm.updateViewLayout(this, lp);
@@ -81,5 +87,13 @@ public class MoveTextView extends android.support.v7.widget.AppCompatButton {
     public void setWm(WindowManager wm, WindowManager.LayoutParams lp) {
         this.wm = wm;
         this.lp = lp;
+    }
+
+    public float getRawX() {
+        return mRawX;
+    }
+
+    public float getRawY() {
+        return mRawY;
     }
 }
