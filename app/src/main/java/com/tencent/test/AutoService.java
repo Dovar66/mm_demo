@@ -58,6 +58,12 @@ public class AutoService extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(final AccessibilityEvent event) {
         int eventType = event.getEventType();
+
+        if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && MainActivity.canShowWindow(this)) {
+            currentActivity = String.valueOf(event.getClassName());
+            TasksWindow.show(this, event.getPackageName() + "\n" + event.getClassName());
+        }
+
         String str_eventType;
         switch (eventType) {
             case AccessibilityEvent.TYPE_VIEW_CLICKED:
@@ -149,11 +155,6 @@ public class AutoService extends AccessibilityService {
                 break;
         }
         Log.v(TAG, "EventType: " + str_eventType + "\tAction:" + action + "\tpackage:" + event.getPackageName() + "\tClass:" + event.getClassName() + "\t");
-
-        if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && MainActivity.canShowWindow(this)) {
-            currentActivity = String.valueOf(event.getClassName());
-            TasksWindow.show(this, event.getPackageName() + "\n" + event.getClassName());
-        }
 
         if (enableFunc2) {          //抢红包
             //通知栏、Toast事件
