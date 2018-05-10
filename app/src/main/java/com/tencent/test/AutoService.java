@@ -148,69 +148,59 @@ public class AutoService extends AccessibilityService {
                 //在微信内页但不在聊天详情页时，收到红包不会产生通知栏事件，只有系统标题栏内容发生改变
                 //标题栏中已经有微信未读消息图标时：TYPE_WINDOW_CONTENT_CHANGED	package:com.android.systemui	Class:android.widget.ImageView
                 //标题栏中尚未有未读消息图标时：TYPE_WINDOW_CONTENT_CHANGED	package:com.android.systemui	Class:android.widget.FrameLayout
-                Log.i(TAG, "EventType: " + str_eventType + "\tpackage:" + event.getPackageName() + "\tClass:" + event.getClassName() + "\t");
-                return;
             default:
                 action = event.getAction() + "";
                 break;
         }
         Log.v(TAG, "EventType: " + str_eventType + "\tAction:" + action + "\tpackage:" + event.getPackageName() + "\tClass:" + event.getClassName() + "\t");
 
-        if (enableFunc2) {          //抢红包
-            //通知栏、Toast事件
-            // TODO: 2017/10/26  MIUI9不会触发AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED
-            if (eventType == AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED) {
-                if (event.getParcelableData() != null || event.getParcelableData() instanceof Notification) {//通知栏事件
-                    List<CharSequence> texts = event.getText();
-                    if (!texts.isEmpty()) {
-                        for (CharSequence t : texts) {
-                            String text = String.valueOf(t);
+        if (enableFunc2 && "com.tencent.mm".equals(event.getPackageName())) {//抢红包
+            Log.d(TAG, "EventType: " + str_eventType + "\tAction:" + action + "\tClass:" + event.getClassName() + "\t");
 
-                            if (text.contains("微信红包")) {
-                                isRunning = true;
-                                isBackward = false;
-                                openNotification(event);
-                            }
+            if (eventType == AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED) {//通知栏、Toast会触发该类型事件
+                if (event.getParcelableData() != null && event.getParcelableData() instanceof Notification) {//通知栏事件
+                    Notification nc = (Notification) event.getParcelableData();
+//                    nc.contentIntent.getCreatorPackage() ==> com.tencent.mm
+//                    event.getContentDescription() ==>null
+//                    event.getBeforeText() ==>null
+                    String text = String.valueOf(nc.tickerText);
+                    if (!isRunning && text.contains(":[微信红包]")) {
+                        isRunning = true;
+                        //点开通知栏消息
+                        PendingIntent pendingIntent = nc.contentIntent;
+                        try {
+                            pendingIntent.send();
+                        } catch (PendingIntent.CanceledException e) {
+                            e.printStackTrace();
                         }
-                    } else {
-                        Toast.makeText(this, "没有text", Toast.LENGTH_SHORT).show();
                     }
                 }
-            } else {//过滤掉通知栏和Toast事件
-                for (int j = 0; j < activityNames.size(); j++) {
-                    if (activityNames.get(j).equals(currentActivity)) {
-                        isRunning = true;
-                        //当前在红包待开页面，去拆红包
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                getLuckyMoney(event);
-                            }
-                        }, 100);
-                        break;
+            } else {
+                if (eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+                    for (int j = 0; j < activityNames.size(); j++) {
+                        if (activityNames.get(j).equals(event.getClassName())) {
+                            isRunning = true;
+                            //当前在红包待开页面，去拆红包
+                            getLuckyMoney(event);
+                            break;
+                        }
                     }
-                }
 
-                if ("com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyDetailUI".equals(currentActivity)) {
-                    isRunning = false;
-                    //拆完红包后看详细纪录的界面
-//                openNext("查看我的红包记录");
-                    isBackward = true;
-                    mTts.speak("抢到红包了", TextToSpeech.QUEUE_FLUSH, null);
-                } else if ("com.tencent.mm.ui.LauncherUI".equals(currentActivity)) {
-                    //在聊天界面,去点中红包
-                    if (!isBackward) {//不是从拆完红包页返回时
-                        isRunning = true;
-                        new Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                openLuckyEnvelope();
-                            }
-                        }, 100);
-                    } else {
+                    if ("com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyDetailUI".equals(event.getClassName())) {
                         isRunning = false;
+                        //拆完红包后看详细纪录的界面
+//                openNext("查看我的红包记录");
+                        mTts.speak("抢到红包了", TextToSpeech.QUEUE_FLUSH, null);
+                    } else if ("com.tencent.mm.ui.LauncherUI".equals(currentActivity)) {
+                        //当前在聊天界面,去点中红包
+                        openLuckyEnvelope();
                     }
-                    isBackward = false;
+                }
+                if (eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+                    if ("com.tencent.mm.ui.LauncherUI".equals(currentActivity)) {
+                        //当前在聊天界面,去点中红包
+                        openLuckyEnvelope();
+                    }
                 }
             }
         }
