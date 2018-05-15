@@ -1,4 +1,5 @@
 # mm_demo
+Note:这里的代码不一定会及时更新，查看最新代码请star我的另一个项目：visoc
 
 关于如何获取app页面中控件的id：在Android Studio中开启Android Device Monitor,选择设备后点击Dump View Hierarchy for UI Automator即可查看。<br> 
 <p align="center">
